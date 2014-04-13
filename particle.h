@@ -5,12 +5,16 @@ struct Vec3f {
 	float x, y, z;
 
 	Vec3f(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+
+    Vec3f() {}
 };
 
 struct Color {
 	float r, g, b;
 
 	Color(float _r, float _g, float _b) : r(_r), g(_g), b(_b) {}
+    
+    Color() {}
 };
 
 struct Particle {
@@ -23,6 +27,8 @@ struct Particle {
 
 	Particle(Vec3f& pos, Vec3f& vel, Color& col)
 		: position(pos), velocity(vel), color(col) {} 
+
+    Particle() {}
 };
 
 #endif

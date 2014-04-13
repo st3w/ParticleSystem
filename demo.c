@@ -8,25 +8,37 @@
 using namespace std;
 
 vector<Particle> particles;
-const unsigned numParticles = 20;
+const unsigned numParticles = 200;
 //float t = 0;
 const float delta_t = 1.0/60.0;
-const float gravity = 1.0;
+const float gravity = 15.0;
+
+GLuint LoadTextureRAW(const char * filename, int width, int height);
+void FreeTexture(GLuint texture);
+
+void ResetParticle(Particle& particle)
+{
+    Vec3f position(0.0f, 0.0f, -5.0f);
+
+    Vec3f velocity( 8.0f * ( (float) rand() / (float) RAND_MAX - 0.5f), // x velocity
+            15.0f * ( (float) rand() / (float) RAND_MAX), // y velocity
+            8.0f * ( (float) rand() / (float) RAND_MAX - 0.5f) ); // z velocity
+
+    Color color((float) rand() / (float) RAND_MAX, // red color
+            (float) rand() / (float) RAND_MAX, // green color
+            (float) rand() / (float) RAND_MAX); // blue color
+
+    particle.position = position;
+    particle.velocity = velocity;
+    particle.color = color;
+}
 
 void createParticles()
 {
 	for (unsigned i = 0; i < numParticles; i++) {
-		Vec3f position(0.0f, 0.0f, -5.0f);
-		
-		Vec3f velocity( 1.0f * ( (float) rand() / (float) RAND_MAX - 0.5f), // x velocity
-			 3.0f * ( (float) rand() / (float) RAND_MAX), // y velocity
-			 1.0f * ( (float) rand() / (float) RAND_MAX - 0.5f) ); // z velocity
-
-		Color color((float) rand() / (float) RAND_MAX, // red color
-			(float) rand() / (float) RAND_MAX, // green color
-			(float) rand() / (float) RAND_MAX); // blue color
-
-		particles.emplace_back(position, velocity, color);	
+        Particle p;
+        ResetParticle(p);
+		particles.push_back(p);	
 	}	
 }
 
@@ -45,8 +57,12 @@ void updateParticles()
 		particles[i].position.x += particles[i].velocity.x * delta_t;
 		particles[i].position.y += particles[i].velocity.y * delta_t;
 		particles[i].position.z += particles[i].velocity.z * delta_t;
-	}
-
+	    
+        if (particles[i].position.y < -10.0f) {
+            ResetParticle(particles[i]);
+        }
+    }
+    
 	glutPostRedisplay();
 	// t+=delta_t;
 }
@@ -94,7 +110,9 @@ void drawParticles()
 		glPopMatrix();
 	}
 }
-void display() {
+
+void display() 
+{
 	glClearDepth(1);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -105,16 +123,58 @@ void display() {
 	glutSwapBuffers();
 }
  
-int main(int argc, char** argv) { 
+int main(int argc, char** argv) 
+{ 
 	glutInit(&argc, argv);
-        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-        glutInitWindowSize(640, 480);
-        glutInitWindowPosition(100, 100);
-        glutCreateWindow ("CAP4730 Final Project Demo");
-        init();
-        glutDisplayFunc(display);
-       	glutIdleFunc(updateParticles);
-        glutReshapeFunc(reshape);
-        glutMainLoop();
-        return 0;
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitWindowSize(640, 480);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow ("CAP4730 Final Project Demo");
+    init();
+    glutDisplayFunc(display);
+    glutIdleFunc(updateParticles);
+    glutReshapeFunc(reshape);
+    glutMainLoop();
+    return 0;
 }
+
+GLuint LoadTextureRAW(const char * filename, int width, int height) {
+    GLuint texture;
+    unsigned char * data;
+    FILE * file;
+
+    file = fopen(filename, "rb");
+    if (file == NULL)
+        return 0;
+
+    data = (unsigned char *) malloc(width * height * 3); 
+
+    fread(data, width * height * 3, 1, file);
+    fclose(file);
+
+    glGenTextures(1, &texture);
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+            GL_LINEAR_MIPMAP_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE,
+            data);
+
+    free(data);
+
+    return texture;
+}
+
+void FreeTexture(GLuint texture) {
+        glDeleteTextures(1, &texture);
+}
+
