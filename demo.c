@@ -84,6 +84,16 @@ void updateParticles()
         if (particles[i].position.y < -10.0f) {
             ResetParticle(particles[i]);
         }
+
+	if (particles[i].color.r != 0.0f) {
+		particles[i].color.r *= 0.99f;
+	}
+	if (particles[i].color.g != 0.0f) {
+		particles[i].color.g *= 0.99f;
+	}
+	if (particles[i].color.b != 0.0f) {
+		particles[i].color.b *= 0.99f;
+	}
     }
     
 	glutPostRedisplay();
