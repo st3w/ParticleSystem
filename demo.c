@@ -15,6 +15,7 @@ const float gravity = 15.0;
 
 GLuint LoadTextureRAW(const char * filename, int width, int height);
 void FreeTexture(GLuint texture);
+GLuint texture[2];
 
 void ResetParticle(Particle& particle)
 {
@@ -24,10 +25,32 @@ void ResetParticle(Particle& particle)
             15.0f * ( (float) rand() / (float) RAND_MAX), // y velocity
             8.0f * ( (float) rand() / (float) RAND_MAX - 0.5f) ); // z velocity
 
+    int randNum = rand() % 3;
+    float r, g, b;
+    if (randNum == 0) {
+        r = g = b = 1.0f;   
+    }
+    if (randNum == 1) {
+        r = 1.0f;
+        g = 74.0f/255.0f;
+        b = 0.0f;
+        r = r * 1.1f;
+        g = g * 1.1f;
+    }
+    if (randNum == 2) {
+        r = 0.0f;
+        g = 33.0f/255.0f;
+        b = 165.0f/255.0f;
+        g = g * 1.4f;
+        b = b * 1.4f;
+    }
+
+    Color color(r, g, b);
+    /*    
     Color color((float) rand() / (float) RAND_MAX, // red color
             (float) rand() / (float) RAND_MAX, // green color
             (float) rand() / (float) RAND_MAX); // blue color
-
+    */
     particle.position = position;
     particle.velocity = velocity;
     particle.color = color;
@@ -70,7 +93,8 @@ void updateParticles()
 void init() {
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
-	createParticles();
+	texture[0] = LoadTextureRAW( "gator.raw", 256, 256);
+    createParticles();
 }
 
 void reshape(int w, int h) {
@@ -83,10 +107,14 @@ void reshape(int w, int h) {
 
 void drawSquare() {
 	glBegin(GL_QUADS);
+        glTexCoord2d(0, 1);
 		glVertex2d(-1.0, -1.0);
+        glTexCoord2d(1, 1);
  		glVertex2d(1.0, -1.0);
+        glTexCoord2d(1, 0);
 		glVertex2d(1.0, 1.0);
-		glVertex2d(-1.0, 1.0);
+        glTexCoord2d(0, 0);
+		glVertex2d(-1, 1);
 	glEnd();
 }
 
@@ -97,15 +125,15 @@ void drawParticles()
 
 		glTranslatef(particles[i].position.x, particles[i].position.y, particles[i].position.z);
 
-                glDisable (GL_DEPTH_TEST);
-                //glEnable (GL_BLEND);
+        glDisable (GL_DEPTH_TEST);
+        glEnable (GL_BLEND);
 
-                //glBlendFunc(GL_DST_COLOR, GL_ZERO);
-                //glBindTexture(GL_TEXTURE_2D, texture[0]);
-		
-		glColor3f(particles[i].color.r, particles[i].color.g, particles[i].color.b);
-		drawSquare();
-		glEnable(GL_DEPTH_TEST);
+        //glBlendFunc(GL_ONE, GL_ONE);
+        glBindTexture(GL_TEXTURE_2D, texture[0]);
+
+        glColor3f(particles[i].color.r, particles[i].color.g, particles[i].color.b);
+        drawSquare();
+        glEnable(GL_DEPTH_TEST);
 
 		glPopMatrix();
 	}
@@ -159,7 +187,7 @@ GLuint LoadTextureRAW(const char * filename, int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
             GL_LINEAR_MIPMAP_NEAREST);
